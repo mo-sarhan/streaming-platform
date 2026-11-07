@@ -1,0 +1,80 @@
+---
+services:
+  
+  db:
+    image: postgres:17
+    container_name: stream_db
+    restart: unless-stopped
+    networks:
+      - stream_network
+
+    environment:
+      POSTGRES_USER: stream_user
+      POSTGRES_PASSWORD: stream_password
+      POSTGRES_DB: stream_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - stream_db:/var/lib/postgresql/data
+
+  cache:
+    image: redis
+    container_name: stream_cache
+    hostname: stream_cache
+    networks:
+      - stream_network
+
+  broker:
+    image: rabbitmq:4.2-management
+    container_name: stream_broker
+    hostname: stream_broker
+    ports:
+      - 5672:5672 
+      - 15672:15672 
+    networks:
+      - stream_network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: stream_db_admin
+    restart: unless-stopped
+    networks:
+      - stream_network
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+  storage:
+    image: localemu/localemu:latest
+    container_name: stream_storage
+    hostname: stream_storage
+
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+
+    environment:
+      - PERSISTENCE=1 
+      - DASHBOARD_API_OPEN=1
+
+    volumes:
+      - localemu_data:/var/lib/localemu
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    restart: unless-stopped
+
+
+volumes:
+  stream_db:
+  localemu_data:
+      
+  
+  
+networks:
+  stream_network:
+
+    
